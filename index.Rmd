@@ -3,10 +3,14 @@ title: "R Shiny Web Map Tutorial"
 author: "Jay Matsushiba"
 date: "2024-09-19"
 output: 
+  html_notebook: 
+    toc: true
   html_document:
     toc: true
     toc_float: true
     theme: united
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -281,6 +285,52 @@ ggplot() +
 **Now that we have this nice map, let's make it interactive and put it on a web application!** 
 
 ## Part 3: Basic Shiny Apps
+To get started, let's do an introduction on Shiny apps. Shiny apps are a way to create interactive, well, applications using the R language. In order to create Shiny apps, we need to distinguish how they work in contrast to the `interactive` mode that we usually use to work with R. 
+
+In typical R code, we can run our code line by line. This is called `interactive` mode. That means we can write one line of code and run it.
+```{r}
+x <- "hello world"
+```
+
+Then we can add another line of code and run it, and this would work correctly. 
+```{r}
+print(x)
+```
+
+However, when we create Shiny apps and then run them, we don't have the option of adding new lines of code and building upon the previous steps while the app is running. In other words, the Shiny app will need to contain all of the code to load in files, do the intended operations on them, etc. This will become apparent as we go through the lab. 
+
+This part references Mastering Shiny (https://mastering-shiny.org/index.html). Please take a look there for additional context and learning.  
+
+### Basic Structure of a Shiny App
+Let's create a new file called `R/app.R`. This single file will contain all of the code we need for our Shiny app for now. The code below has the basic structure of a Shiny App, and is pretty much the simplest Shiny App that you can create. 
+```{r, eval=FALSE}
+# load the shiny library
+library(shiny)
+
+# This defines the user interface, which is the part that your users will see and interact with
+ui <- fluidPage(
+  "Hello, world!"
+)
+
+# This defines the behaviour of the app. 
+# Currently, this is empty so our application doesn't do anything. 
+server <- function(input, output, session) {
+}
+
+# This line executes or starts the Shiny app
+shinyApp(ui, server)
+```
+
+You should be able to click `Run App` above the app.R that is open. 
+![Screenshot for the Run App button](images/runapp.png) 
+
+This should open a new window that shows your application. 
+![Screenshot for the Hello World! app](images/helloworld_shiny.png)
+
+### Basic UI 
+Now this Shiny app is pretty boring, with no interactivity for the user. Let's add some UI elements to the app. There are a number of premade UI elements that we will use (See https://mastering-shiny.org/basic-ui.html for more details on what is available). We unfortunately won't have time to go over the range of UI possible with Shiny, as that could be a whole workshop in itself.
+
+### Basic Reactivity
 
 ## Part 4: Spatial Data and Shiny Apps 
 
