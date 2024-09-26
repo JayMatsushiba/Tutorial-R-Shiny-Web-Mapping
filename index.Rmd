@@ -287,7 +287,7 @@ ggplot() +
 ## Part 3: Basic Shiny Apps
 To get started, let's do an introduction on Shiny apps. Shiny apps are a way to create interactive, well, applications using the R language. In order to create Shiny apps, we need to distinguish how they work in contrast to the `interactive` mode that we usually use to work with R. 
 
-In typical R code, we can run our code line by line. This is called `interactive` mode. That means we can write one line of code and run it.
+In typical R code, we run our code line by line. This is often called scripting, and we know our code runs from the top of the page to the bottom. We can also run this script one line at a time. That means we can write one line of code and run it.
 ```{r}
 x <- "hello world"
 ```
@@ -297,7 +297,7 @@ Then we can add another line of code and run it, and this would work correctly.
 print(x)
 ```
 
-However, when we create Shiny apps and then run them, we don't have the option of adding new lines of code and building upon the previous steps while the app is running. In other words, the Shiny app will need to contain all of the code to load in files, do the intended operations on them, etc. This will become apparent as we go through the lab. 
+However, when we create Shiny apps and then run them, we don't have the option of adding new lines of code and building upon the previous steps while the app is running. In other words, the Shiny app will need to contain all of the code to load in files, do the intended operations on them, etc. This will become apparent as we go through the lab. In a Shiny app, the code does not run from top to bottom of the page either, instead relying on something called `reactivity` for defining which code should run and when. 
 
 This part references Mastering Shiny (https://mastering-shiny.org/index.html). Please take a look there for additional context and learning.  
 
@@ -330,7 +330,146 @@ This should open a new window that shows your application.
 ### Basic UI 
 Now this Shiny app is pretty boring, with no interactivity for the user. Let's add some UI elements to the app. There are a number of premade UI elements that we will use (See https://mastering-shiny.org/basic-ui.html for more details on what is available). We unfortunately won't have time to go over the range of UI possible with Shiny, as that could be a whole workshop in itself.
 
+#### Sample Shiny App
+
+#### Inputs
+Let's look at UI part of `app.R` again and add a couple lines of code to begin creating the UI. Let's clear the `"Hello World"`, and create some inputs. We'll start with a really simple text input and numeric input. These inputs are how we get the user's input to trigger or change some behaviour of the app. 
+
+```{r, eval=FALSE}
+# This defines the user interface, which is the part that your users will see and interact with
+ui <- fluidPage(
+  textInput("name", "What is your name?"),
+  numericInput("number", "Enter a number", 
+               value = 12,
+               min = 0, 
+               max = 200)
+  numericInput(inputId = "number2",
+               label = "Enter a number",
+               value = 12,
+               min = 0,
+               max = 200)
+)
+```
+![Basic UI](images/basic_ui.png)
+
+Let's also add a button, which we can later use to trigger some actions for the app. 
+```{r, eval=FALSE}
+# This defines the user interface, which is the part that your users will see and interact with
+ui <- fluidPage(
+  textInput(inputId = "name", 
+            label = "What is your name?"),
+  numericInput(inputId = "number", 
+               label = "Enter a number", 
+               value = 12,
+               min = 0, 
+               max = 200),
+  numericInput(inputId = "number2",
+               label = "Enter a number",
+               value = 12,
+               min = 0,
+               max = 200),
+  actionButton(inputId = "click", 
+               label = "Click Me!")
+)
+```
+![Basic UI with button](images/basic_ui_with_button.png)
+
+Note that every input has an `inputId` parameter. These have to be unique values across all the UI elements, because this is how we will access the values inputted into those UI elements. 
+
+Now, we can access the input values in the server function by the `input` object. For example, we can access the `name` inputId object in the server function by using `input$name`. 
+
+#### Outputs
+Outputs are values that are calculated or retrieved by the server in some function, which are then displayed somehow on the UI. Similarly to inputs, outputs will have a unique `outputId` parameter. 
+
+Let's review the complete app code at this stage. If we run this app, we see some ways to input data but it doesn't seem to do anything. This is because we are missing outputs and the server code that describes the logic of the app. 
+```{r, eval=FALSE}
+library(shiny)
+ui <- fluidPage(
+  textInput(inputId = "name", 
+            label = "What is your name?"),
+  numericInput(inputId = "number", 
+               label = "Enter a number", 
+               value = 12,
+               min = 0, 
+               max = 200),
+  numericInput(inputId = "number2",
+               label = "Enter a number",
+               value = 12,
+               min = 0,
+               max = 200),
+  actionButton(inputId = "click", 
+               label = "Click Me!")
+)
+server <- function(input, output, session) {
+}
+shinyApp(ui, server)
+```
+
+Here, we will add a couple more lines to the UI of the app for the outputs. These are two most simple outputs, with `textOutput()` for regular text and `verbatimTextOutput()` for code / console outputs. 
+```{r, eval=FALSE}
+library(shiny)
+ui <- fluidPage(
+  textInput(inputId = "name",
+            label = "What is your name?"),
+  numericInput(inputId = "number",
+               label = "Enter a number",
+               value = 12,
+               min = 0,
+               max = 200),
+  numericInput(inputId = "number2",
+               label = "Enter a number",
+               value = 12,
+               min = 0,
+               max = 200),
+  actionButton(inputId = "click",
+               label = "Click Me!"),
+  textOutput(outputId = "text"),
+  verbatimTextOutput(outputId = "code")
+)
+server <- function(input, output, session) {
+}
+shinyApp(ui, server)
+```
+![Basic UI with button](images/basic_ui_with_button.png)
+
+Now, if we run this app, still nothing would look different from the previous steps, since we haven't provided any server logic so far. Let's add some simple placeholder values into the server function. Similar to inputs, we can access output variables using `output$the_outputId_of_output_UI`. 
+```{r, eval=FALSE}
+server <- function(input, output, session) {
+  output$text <- renderText({
+    "Hello friend!"
+  })
+  output$code <- renderPrint({
+    5 * 20
+  })
+}
+```
+![Basic outputs](images/basic_output.png)
+
+Note that we can't just pass a string or a bunch of code to each of these outputs. We need to wrap them with a `renderText()` or `renderPrint()`. These functions correspond to the the type of output UI they are linking to. Later, we would use `renderLeaflet()` in order to render maps. This `render` function is necessary for enabling the output UI elements to update when it's inputs are changed (**reactivity**), and for translating R code into HTML (which is the language for the web page). 
+
+At this point, we have the basic inputs and outputs necessary to create our app, but our app doesn't do anything. This is where we need to understand the concept of **reactivity** as used by Shiny. 
+
 ### Basic Reactivity
+Shiny apps use this concept called **reactivity**, which underpins their behaviour. This can be pretty tough to wrap your head around, since it is really different from scripting. As described earlier, a typical R script will run the code generally in order, from top to bottom. With Shiny apps, the order in which code is run does not follow this structure. 
+
+Instead, code is run depending on the changes to the `input` object, which is defined by the user's actions. As other variables take the `input` as a dependency, they will also get updated when `input` is updated. `output` is really similar, but in the opposite direction where we change the `output` object and those changes propagate to the output UI elements. 
+
+Let's try applying **reactivity** to our `app.R`. Let's simplify our code for now, and focus on the `textInput` and `textOutput` here. If you try running this Shiny app, you'll notice that the `textOutput` updates every time there is a change made to the user input. This means the `renderText()` is running every time there is a change to `input$name`. 
+```{r, eval=FALSE}
+library(shiny)
+ui <- fluidPage(
+  textInput(inputId = "name",
+            label = "What is your name?"),
+  textOutput(outputId = "text")
+)
+server <- function(input, output, session) {
+  output$text <- renderText({
+    paste0("Hello ", input$name, "!")
+  })
+}
+shinyApp(ui, server)
+```
+![Basic reactivity demonstrated](images/basic_reactivity.png)
 
 ## Part 4: Spatial Data and Shiny Apps 
 
