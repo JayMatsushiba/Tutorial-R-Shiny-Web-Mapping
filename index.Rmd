@@ -98,22 +98,16 @@ Now, you should be able to create a new R Project that is linked to the GitHub r
 You should now have a R Project set up that we can work in that is version controlled with GitHub. This means that we can save our progress while backing it up to GitHub, as well as rollback to different versions in case we break something along the way. There is a lot that Git and GitHub can do that can make your work more efficient and easier to share, but that would be outside of the scope of this particular workshop. The **Happy Git and GitHub for the useR** by Jennifer Bryan (https://happygitwithr.com/) is a really good resource for specifically using GitHub with RStudio, so consult that if you would like to learn more. 
 
 ### Make your first changes through `git commit` and `git push`
-To show how GitHub works with RStudio, let's make our first .R file in our project. I usually prefer to create an `/R` folder and create a new R file in there. Let's call this new file `spatial.R`. 
+To show how GitHub works with RStudio, let's make our first .R file in our project. 
 
-**Extra Note:**
-You can actually make a new file straight from the RStudio console or in your code by using the following function. Totally optional, but I just like doing this for larger projects that are more complicated. This way the file is created automatically in the right place. 
-```{r}
-usethis::use_r("spatial") # creates R/spatial.R in your project 
-```
-
-Let's put some content into this `R/spatial.R`. Copy and paste the following code into the file. Save the changes to your file. 
+Let's put some content into this `spatial.R`. Copy and paste the following code into the file. Save the changes to your file. 
 ```{r}
 # This will contain the spatial data analysis code for this workshop.
 print("Hello World")
 ```
 
 In the upper right window, there are a few tabs, including one that says "Git". Click that tab to open the view. 
-1![Click the Git menu in the upper right window](images/rstudio_gitmenu.png)
+![Click the Git menu in the upper right window](images/rstudio_gitmenu.png)
 
 Click the "Commit" button in the "Git" view. This will open a new window. Here, you can decide what changes to your repository to commit, meaning record those changes as a version of your repository. 
 
