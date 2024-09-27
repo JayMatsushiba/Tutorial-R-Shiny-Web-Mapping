@@ -300,7 +300,7 @@ However, when we create Shiny apps and then run them, we don't have the option o
 This part references Mastering Shiny (https://mastering-shiny.org/index.html). Please take a look there for additional context and learning.  
 
 ### Basic Structure of a Shiny App
-Let's create a new file called `R/app.R`. This single file will contain all of the code we need for our Shiny app for now. The code below has the basic structure of a Shiny App, and is pretty much the simplest Shiny App that you can create. 
+Let's create a new file called `app.R`. This single file will contain all of the code we need for our Shiny app for now. The code below has the basic structure of a Shiny App, and is pretty much the simplest Shiny App that you can create. 
 ```{r, eval=FALSE}
 # load the shiny library
 library(shiny)
@@ -575,7 +575,7 @@ library(sf)
 
 # Top Level:
 # Code at this level runs once when the application is launched 
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
 
 ui <- fluidPage(
   verbatimTextOutput(outputId = "code")
@@ -605,7 +605,7 @@ library(shiny)
 library(sf)
 library(leaflet)
 
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
 
 ui <- fluidPage(
   # We can use leafletOutput like the other outputs
@@ -630,7 +630,7 @@ library(shiny)
 library(sf)
 library(leaflet)
 
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
 
 ui <- fluidPage(
   leafletOutput(outputId = "mymap")
@@ -658,7 +658,7 @@ library(shiny)
 library(sf)
 library(leaflet)
 
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
 
 ui <- fluidPage(
   leafletOutput(outputId = "mymap")
@@ -705,8 +705,8 @@ library(shiny)
 library(sf)
 library(leaflet)
 
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
-burnaby <- st_read("../data/Burnaby_Boundary/Burnaby_Boundary.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
+burnaby <- st_read("data/Burnaby_Boundary/Burnaby_Boundary.shp")
 
 ui <- fluidPage(
   leafletOutput(outputId = "mymap")
@@ -814,7 +814,7 @@ library(sf)
 library(leaflet)
 
 # Reading in the black bear observations
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
 
 # Define UI ----
 ui <- page_sidebar(
@@ -851,7 +851,7 @@ library(bslib)
 library(sf)
 library(leaflet)
 
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
 
 # Define UI ----
 ui <- page_sidebar(
@@ -909,7 +909,7 @@ library(bslib)
 library(sf)
 library(leaflet)
 
-black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
 
 # Define UI ----
 ui <- page_sidebar(
@@ -971,4 +971,44 @@ Can you create an interactive web map that displays the grid cell output with ob
 
 ## Part 5: Publishing Your Shiny Apps 
 Now that you have created your web map, we want to share it! 
+
+We will be using www.shinyapps.io to share our application to anyone in the world with an internet connection and a browser. 
+
+Full Getting Started Guide: https://docs.posit.co/shinyapps.io/guide/getting_started/
+
+### Step 1: Create an account
+Go to www.shinyapps.io and follow the instructions for creating an account. They provide the option for joining with GitHub, so you should be able to one-click create a new account. 
+
+### Step 2: Set up 
+Install the `rsconnect` package, which we need to connect to shinyapps.io 
+```{r, eval=FALSE}
+install.packages("rsconnect")
+library(rsconnect)
+```
+
+### Step 3: Get your token
+Click your account name in the upper right part of the page, then click the **Tokens** option. 
+![Tokens menu option](images/shinyappsio_token.png)
+
+This should open the **Tokens** page. Click on **Show** on one of the tokens in the table, and this should open a pop up with instructions on how to authorize in Rstudio to enable deploying your application. Follow these instructions
+![Authorization instructions](images/shinyappsio_authorization_instructions.png)
+
+### Step 4: Publish your app! 
+Cick on the **Publish** button in the upper right corner of your Shiny app code(probably called `app.R`). 
+![Publish button](images/shinyappsio_publish.png)
+
+You should see in the popup menu that your account is connected. Give your application a name and click that publish button. This may take a little while to deploy, so take this opportunity to stand up and stretch, move around, relax. 
+![Publishing your app to the world!](images/shinyappsio_publish_for_real.png)
+
+### Step 5: Share your app with your friends and colleagues! 
+You can go onto www.shinyapps.io and log in to your account. You should be able to see your web map in the **Applications** page. Click on it, and it should provide the details for your web map. There should be a link to access your app here! 
+![Shiny app details on shinyapps.io](images/shinyappsio_application_details.png)
+
+**If everything has gone correctly, you should be done! Congratulations!**
+
+Here is my example Shiny app for this workshop: https://jaymatsushiba.shinyapps.io/Tutorial-R-Shiny-Web-Mapping/ 
+
+## Thank you for following along! If you need any help, feel free to reach out at jay_matsushiba@sfu.ca 
+
+This site was originally developed for **Web Mapping with R Shiny Workshop Series** at SFU delivered on September 20 and September 27, 2024.
 
