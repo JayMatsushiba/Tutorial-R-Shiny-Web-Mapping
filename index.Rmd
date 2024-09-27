@@ -573,6 +573,7 @@ shinyApp(ui, server)
 Since we only need to load in our data once when the application launches, we can put the line of code at the top level. We can change the `print()` in `output$code` to show that the data has been loaded.  
 ```{r, eval=FALSE}
 library(shiny)
+library(sf)
 
 # Top Level:
 # Code at this level runs once when the application is launched 
@@ -603,6 +604,7 @@ Believe it or not, we already have the foundations necessary to create a simple 
 A new function we are introducing is the `leaflet()` function. We don't need to understand how to use it in depth at this point, but it is sort of similar to using something like `ggplot()` but specifically for web maps. 
 ```{r, eval=FALSE}
 library(shiny)
+library(sf)
 library(leaflet)
 
 black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
@@ -622,5 +624,35 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 ![The most basic Shiny Leaflet web app](images/basic_leaflet_1.png)
+### Base Maps 
+This is completely empty map though, which isn't very useful. Let's add a **base map**. A **base map** is essentially an image that is spatially referenced, and usually used just for providing visual context to the spatial data on the map. We generally cannot use the **base map** for any additional spatial analyses or access the input data that was used to create them through the **base map** itself. 
+```{r, eval=FALSE}
+library(shiny)
+library(sf)
+library(leaflet)
+
+black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+
+ui <- fluidPage(
+  leafletOutput(outputId = "mymap")
+)
+server <- function(input, output, session) {
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      # This is how we add a basemap on the leaflet
+      # provider basically means which base map to use 
+      addProviderTiles(provider = providers$CartoDB.Positron)
+  })
+}
+shinyApp(ui, server)
+
+```
+![Basic Leaflet app with base map](images/leaflet_basemap.png)
+
+This is starting to look more like what we think of as a web map! We can zoom into the map, change our view of the map, etc. At this point though, this doesn't have any real data that we would like to show. Let's change that. 
+
+### Adding Point Data 
+Let's add our black bear observations onto this map. 
+
 
 ## Part 5: Publishing Your Shiny Apps 
