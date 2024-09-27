@@ -470,7 +470,133 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 ![Basic reactivity demonstrated](images/basic_reactivity.png)
+We can also move the content of `renderText()` into a reactive expression using `reactive()`. This isn't really necessary here, but it is more useful as your applications become more complex. Something to remember is that `reactive()` is a function, so we need to write `greeting()` in order to access the value (i.e., running the function), rather than `greeting`. 
+
+```{r, eval=FALSE}
+library(shiny)
+ui <- fluidPage(
+  textInput(inputId = "name",
+            label = "What is your name?"),
+  textOutput(outputId = "text")
+)
+server <- function(input, output, session) {
+  greeting <- reactive({
+    paste0("Hello ", input$name, "!")
+  })
+  output$text <- renderText({
+    greeting()
+  })
+}
+shinyApp(ui, server)
+```
+
+Now, we may not always want reactive behaviour. While the app runs fine updating for every change of input for something small, like one short text string representing a name, it would be a problem for a more complex operation. Imagine you wanted to run a model or spatial analysis that takes a few minutes. You would want to make sure you have all your inputs correct, and then trigger the function. It would be very frustrating if every input change automatically ran the model. 
+
+For this purpose, we can use something called `eventReactive()` along with an `actionButton()`. This is really similar to what is in the previous chunk, with the main difference that `reactive()` has been replaced by `eventReactive()`. The first parameter of `eventReactive()` is the input action that triggers the change; in our case is the `actionButton()`. The second parameter is the function that runs when the `eventReactive()` is triggered.  
+```{r, eval=FALSE}
+library(shiny)
+ui <- fluidPage(
+  textInput(inputId = "name",
+            label = "What is your name?"),
+  actionButton(inputId = "trigger", label = "Trigger"),
+  textOutput(outputId = "text")
+)
+server <- function(input, output, session) {
+  greeting <- eventReactive(input$trigger, {
+    paste0("Hello ", input$name, "!")
+  })
+  output$text <- renderText({
+    greeting()
+  })
+}
+shinyApp(ui, server)
+```
+
+There is another function called `observeEvent()` that I like to use for my Shiny apps, that is very similar to `eventReactive()`. This is useful if you want to trigger some code without returning its output into a new object. You can learn more about them here: https://mastering-shiny.org/basic-reactivity.html#observers 
+
+#### Challenge!
+Now, let's revisit the application that we had at the end of the UI section. With what you learned about **reactivity**, can you change the behaviour of this application so that when the button is pressed, the UI outputs update to provide a greeting to the input name and multiplies the two input numbers together? 
+```{r, eval=FALSE}
+library(shiny)
+ui <- fluidPage(
+  textInput(inputId = "name",
+            label = "What is your name?"),
+  numericInput(inputId = "number",
+               label = "Enter a number",
+               value = 12,
+               min = 0,
+               max = 200),
+  numericInput(inputId = "number2",
+               label = "Enter a number",
+               value = 12,
+               min = 0,
+               max = 200),
+  actionButton(inputId = "click",
+               label = "Click Me!"),
+  textOutput(outputId = "text"),
+  verbatimTextOutput(outputId = "code")
+)
+server <- function(input, output, session) {
+  output$text <- renderText({
+    "Hello friend!"
+  })
+  output$code <- renderPrint({
+    5 * 20
+  })
+}
+shinyApp(ui, server)
+```
+
+### Loading Data into Shiny apps
+One last thing we need to learn is how to load in data into the Shiny app. We will demonstrate this with a very simple Shiny app that just prints the code output.
+```{r, eval=FALSE}
+library(shiny)
+
+# Top Level:
+# Code at this level runs once when the application is launched 
+
+ui <- fluidPage(
+  verbatimTextOutput(outputId = "code")
+)
+server <- function(input, output, session) {
+  # Middle Level: 
+  # Code at this level runs once when a user visits the app
+  output$code <- renderPrint({
+    # Bottom Level: 
+    # Code at this level runs every time its contents update
+    print("Testing!")
+  })
+}
+shinyApp(ui, server)
+```
+
+Since we only need to load in our data once when the application launches, we can put the line of code at the top level: 
+```{r, eval=FALSE}
+library(shiny)
+
+# Top Level:
+# Code at this level runs once when the application is launched 
+black_bear_obs <- st_read("data/black_bear_observations_bc/black_bear_observations_bc.shp")
+
+ui <- fluidPage(
+  verbatimTextOutput(outputId = "code")
+)
+server <- function(input, output, session) {
+  # Middle Level: 
+  # Code at this level runs once when a user visits the app
+  output$code <- renderPrint({
+    # Bottom Level: 
+    # Code at this level runs every time its contents update
+    print(black_bear_obs)
+  })
+}
+shinyApp(ui, server)
+```
+
+Here is a source that explains how this works: https://shiny.posit.co/r/getstarted/shiny-basics/lesson5/
 
 ## Part 4: Spatial Data and Shiny Apps 
+Believe it or not, we already have the foundations necessary to create a simple web map with Shiny! 
+
 
 ## Part 5: Publishing Your Shiny Apps 
