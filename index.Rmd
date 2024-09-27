@@ -282,8 +282,6 @@ ggplot() +
           aes(fill = grid_count))
 ```
 
-**Now that we have this nice map, let's make it interactive and put it on a web application!** 
-
 ## Part 3: Basic Shiny Apps
 To get started, let's do an introduction on Shiny apps. Shiny apps are a way to create interactive, well, applications using the R language. In order to create Shiny apps, we need to distinguish how they work in contrast to the `interactive` mode that we usually use to work with R. 
 
@@ -623,6 +621,7 @@ server <- function(input, output, session) {
 }
 shinyApp(ui, server)
 ```
+
 ![The most basic Shiny Leaflet web app](images/basic_leaflet_1.png)
 ### Base Maps 
 This is completely empty map though, which isn't very useful. Let's add a **base map**. A **base map** is essentially an image that is spatially referenced, and usually used just for providing visual context to the spatial data on the map. We generally cannot use the **base map** for any additional spatial analyses or access the input data that was used to create them through the **base map** itself. 
@@ -647,12 +646,329 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 
 ```
+
 ![Basic Leaflet app with base map](images/leaflet_basemap.png)
 
 This is starting to look more like what we think of as a web map! We can zoom into the map, change our view of the map, etc. At this point though, this doesn't have any real data that we would like to show. Let's change that. 
 
-### Adding Point Data 
-Let's add our black bear observations onto this map. 
+### Adding Data to Leaflet Map
+Let's add our black bear observations onto this map. This is actually really easy as well, we just need to add a single line of code and use the `addCircles()` function, feeding the `data` parameter with the point dataset (`black_bear_obs`)
+```{r, eval=FALSE}
+library(shiny)
+library(sf)
+library(leaflet)
 
+black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+
+ui <- fluidPage(
+  leafletOutput(outputId = "mymap")
+)
+server <- function(input, output, session) {
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(provider = providers$CartoDB.Positron) %>%
+      # This is how we add points to a leaflet map
+      addCircles(data = black_bear_obs)
+  })
+}
+shinyApp(ui, server)
+```
+![Basic circle symbols for point data](images/leaflet_addCircles.png)
+
+We can also add popups to each of these circles as well, so that it shows some information from the spatial data when the circle is clicked on. This is relatively simple as well. We just add the `popup` parameter in `addCircles()` with the `~column` that we want to have appear in the popup. 
+```{r, eval=FALSE}
+addCircles(data = black_bear_obs,
+           popup = ~observed_1)
+```
+![Basic popups](images/leaflet_addCircles_popup.png)
+
+This is essentially the same for the other spatial data as well, just with different functions. 
+```{r, eval=FALSE}
+# For adding polygons
+leaflet() %>%
+  addPolygons(data = polygons)
+
+# For adding lines
+leaflet() %>%
+  addPolylines(data = polylines)
+
+# For adding rasters
+leaflet() %>%
+  addRasterImage(data = raster_data)
+```
+
+#### Challenge! 
+Can you add the Burnaby Boundary polygon to the map? 
+
+```{r, eval=FALSE}
+library(shiny)
+library(sf)
+library(leaflet)
+
+black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+burnaby <- st_read("../data/Burnaby_Boundary/Burnaby_Boundary.shp")
+
+ui <- fluidPage(
+  leafletOutput(outputId = "mymap")
+)
+server <- function(input, output, session) {
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(provider = providers$CartoDB.Positron) %>%
+      addCircles(data = black_bear_obs,
+                 popup = ~observed_1)
+  })
+}
+shinyApp(ui, server)
+```
+
+### Putting everything together! 
+We are going to make a web map now, with the ability for the user to filter points based off of dates of observations. This will really bring together what we have learnt so far. We will also introduce another library `bslib` for enhancing the look and feel of our web map. 
+
+To start, we'll introduce this template for the app: 
+```{r, eval=FALSE}
+library(shiny)
+library(bslib)
+library(sf)
+library(leaflet)
+
+# Define UI ----
+# This is the main difference from what we have been doing
+# We use page_sidebar() instead of fluidPage() for the UI
+ui <- page_sidebar(
+ 
+)
+
+# Define server logic ----
+server <- function(input, output) {
+
+}
+
+# Run the app ----
+shinyApp(ui = ui, server = server)
+```
+
+Let's add our title and sidebar:
+```{r, eval=FALSE}
+library(shiny)
+library(bslib)
+library(sf)
+library(leaflet)
+
+# Define UI ----
+# This is the main difference from what we have been doing
+# We use page_sidebar() instead of fluidPage() for the UI
+ui <- page_sidebar(
+  title = "Black Bear Observations Web Map",
+  sidebar = sidebar("Filter by Date"),
+  "This is where our main content will go"
+)
+
+# Define server logic ----
+server <- function(input, output) {
+
+}
+
+# Run the app ----
+shinyApp(ui = ui, server = server)
+```
+![Basic sidebar layout](images/basic_sidebar.png)
+
+Let's add some more UI to our app, including a date range input in the sidebar and a basic Leaflet map as the main content: 
+```{r, eval=FALSE}
+library(shiny)
+library(bslib)
+library(sf)
+library(leaflet)
+
+# Define UI ----
+ui <- page_sidebar(
+  title = "Black Bear Observations Web Map",
+  sidebar = sidebar("Filter by Date",
+                    dateRangeInput(inputId = "date_range",
+                                   label = "Date Range"),
+                    actionButton(inputId = "filter_action",
+                                 label = "Filter")
+  ),
+  leafletOutput(outputId = "mymap")
+)
+
+# Define server logic ----
+server <- function(input, output) {
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(provider = providers$CartoDB.Positron)
+  })
+}
+
+# Run the app ----
+shinyApp(ui = ui, server = server)
+```
+![Creating UI with bslib](images/bslib_UI.png)
+
+Now, let's add reading in the spatial data and basic visualization of it to the app:
+```{r, eval=FALSE}
+library(shiny)
+library(bslib)
+library(sf)
+library(leaflet)
+
+# Reading in the black bear observations
+black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+
+# Define UI ----
+ui <- page_sidebar(
+  title = "Black Bear Observations Web Map",
+  sidebar = sidebar("Filter by Date",
+                    dateRangeInput(inputId = "date_range",
+                                   label = "Date Range"),
+                    actionButton(inputId = "filter_action",
+                                 label = "Filter")
+  ),
+  leafletOutput(outputId = "mymap")
+)
+
+# Define server logic ----
+server <- function(input, output) {
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(provider = providers$CartoDB.Positron) %>%
+      # Adding the circle visualizations
+      addCircles(data = black_bear_obs,
+                 popup = ~observed_1)
+  })
+}
+
+# Run the app ----
+shinyApp(ui = ui, server = server)
+```
+![Adding the bear points to the web application](images/bslib_points_added.png)
+
+Let's set up accessing the date range inputs, and show the selected dates with a simple text output in the side bar. 
+```{r, eval=FALSE}
+library(shiny)
+library(bslib)
+library(sf)
+library(leaflet)
+
+black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+
+# Define UI ----
+ui <- page_sidebar(
+  title = "Black Bear Observations Web Map",
+  sidebar = sidebar("Filter by Date",
+                    dateRangeInput(inputId = "date_range",
+                                   label = "Date Range"),
+                    actionButton(inputId = "filter_action",
+                                 label = "Filter"),
+                    # Adding some simple text outputs
+                    textOutput(outputId = "text_start_date"),
+                    textOutput(outputId = "text_end_date")
+  ),
+  leafletOutput(outputId = "mymap")
+)
+
+# Define server logic ----
+server <- function(input, output) {
+  # The eventReactive makes this update on the button press
+  start_date <- eventReactive(input$filter_action, {
+    # dateRangeInput() provides a vector of length 2
+    # the first object in this vector is the first date
+    input$date_range[1]
+  })
+  end_date <- eventReactive(input$filter_action, {
+    # the second object in this vector is the second date
+    input$date_range[2]
+  })
+  # These will automatically update when the reactive values update
+  # start_date() and end_date() are reactive values
+  output$text_start_date <- renderText({
+    paste0("Start date: ", start_date())
+  })
+  output$text_end_date <- renderText({
+    paste0("End date: ",  end_date())
+  })
+
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(provider = providers$CartoDB.Positron) %>%
+      addCircles(data = black_bear_obs,
+                 popup = ~observed_1)
+  })
+}
+
+# Run the app ----
+shinyApp(ui = ui, server = server)
+```
+![Button press updates the start and end dates](images/bslib_text_filter_dates.png)
+
+Time to make the big jump, and add some basic data processing within the application. We will be querying the `black_bear_obs` points by the dates that fall between the `start_date` and `end_date`. 
+```{r, eval=FALSE}
+library(shiny)
+library(bslib)
+library(sf)
+library(leaflet)
+
+black_bear_obs <- st_read("../data/black_bear_observations_bc/black_bear_observations_bc.shp")
+
+# Define UI ----
+ui <- page_sidebar(
+  title = "Black Bear Observations Web Map",
+  sidebar = sidebar("Filter by Date",
+                    dateRangeInput(inputId = "date_range",
+                                   label = "Date Range"),
+                    actionButton(inputId = "filter_action",
+                                 label = "Filter"),
+                    # Adding some simple text outputs
+                    textOutput(outputId = "text_start_date"),
+                    textOutput(outputId = "text_end_date")
+  ),
+  leafletOutput(outputId = "mymap")
+)
+
+# Define server logic ----
+server <- function(input, output) {
+  start_date <- eventReactive(input$filter_action, {
+    input$date_range[1]
+  })
+  end_date <- eventReactive(input$filter_action, {
+    input$date_range[2]
+  })
+  output$text_start_date <- renderText({
+    paste0("Start date: ", start_date())
+  })
+  output$text_end_date <- renderText({
+    paste0("End date: ",  end_date())
+  })
+
+  # Filtering the values of the black_bear_obs
+  # This needs to be in a reactive(), since this will trigger when its inputs are changed
+  # The inputs are changed with the eventReactive(), controlled by the button
+  # Therefore, this selected_black_bear_obs will also update each time the button is pressed
+  selected_black_bear_obs <- reactive({
+    # This queries dates that are within the start and end dates
+    black_bear_obs[black_bear_obs$observed_1 >= start_date() & black_bear_obs$observed_1 <= end_date(),]
+  })
+
+  output$mymap <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(provider = providers$CartoDB.Positron) %>%
+      # Remember to switch the data to the selected_black_bear_obs()
+      addCircles(data = selected_black_bear_obs(),
+                 popup = ~observed_1)
+  })
+}
+
+# Run the app ----
+shinyApp(ui = ui, server = server)
+```
+![Final web map output!!](images/bslib_text_filter_dates.png)
+
+**Congratulations, you have created your first fully fledged R Shiny web map! This is a lot to take in, so please pat yourself on the back for getting this far.**
+
+#### Challenge! 
+Can you create an interactive web map that displays the grid cell output with observation counts from Part 2?
 
 ## Part 5: Publishing Your Shiny Apps 
+Now that you have created your web map, we want to share it! 
+

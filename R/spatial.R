@@ -14,3 +14,4 @@ burnaby <- st_read("data/Burnaby_Boundary/Burnaby_Boundary.shp")
 # This is a polygon representing British Columbia
 # https://open.canada.ca/data/en/dataset/a883eb14-0c0e-45c4-b8c4-b54c4a819edb
 british_columbia <- st_read("data/british_columbia/british_columbia.shp")
+
